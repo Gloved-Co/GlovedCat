@@ -10,7 +10,7 @@ export class CatGif {
     interaction: CommandInteraction,
   ): Promise<void> {
     await interaction.deferReply();
-    const result = await tryCatch(getGif(["cat", "kitty", "kitten", "funny cat"])); 
+    const result = await tryCatch(getGif("cat", "kitty", "kitten", "funny cat")); 
     if (result.error) {
       await interaction.followUp(result.error.message);
       return;
