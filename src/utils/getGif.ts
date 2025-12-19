@@ -1,4 +1,5 @@
-import { tryCatch } from "./tryCatch"
+import { env } from "../env.js"
+import { tryCatch } from "./tryCatch.js"
 
 type TenorGifsResult = {
   results: {
@@ -9,10 +10,6 @@ type TenorGifsResult = {
     }
   }[]
 }
-const tenorApiKey = process.env.TENOR_API_KEY;
-if (!tenorApiKey) {
-  throw new Error("TENOR_API_KEY is not set");
-}
 
 /** 
  * Get a random gif from Tenor API
@@ -21,7 +18,7 @@ if (!tenorApiKey) {
  */
 export async function getGif(...query: string[]): Promise<string> {
   const randomQuery = query[Math.floor(Math.random() * query.length)];
-  const api = `https://tenor.googleapis.com/v2/search?q=${randomQuery}&key=${tenorApiKey}&random=true`;
+  const api = `https://tenor.googleapis.com/v2/search?q=${randomQuery}&key=${env.TENOR_API_KEY}&random=true`;
   const result = await tryCatch(fetch(api).then((r) => r.json() as Promise<TenorGifsResult>)); 
   if (result.error) {
     throw new Error(result.error.message);

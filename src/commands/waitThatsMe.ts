@@ -1,7 +1,5 @@
 import { CommandInteraction } from "discord.js";
 import { Discord, Slash } from "discordx";
-import { getGif } from "../utils/getGif";
-import { tryCatch } from "../utils/tryCatch";
 
 @Discord()
 export class WaitThatsMe {

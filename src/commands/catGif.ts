@@ -1,7 +1,7 @@
 import { type CommandInteraction } from "discord.js";
 import { Discord, Slash } from "discordx";
-import { tryCatch } from "../utils/tryCatch";
-import { getGif } from "../utils/getGif";
+import { tryCatch } from "../utils/tryCatch.js";
+import { getGif } from "../utils/getGif.js";
 
 @Discord()
 export class CatGif {
