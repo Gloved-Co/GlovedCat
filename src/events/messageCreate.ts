@@ -11,7 +11,7 @@ export class MessageCreate {
     }
     const gifChance = Math.random() * 100;
     if (gifChance < 2) {
-      const result = await tryCatch(getGif(["cat", "kitty", "kitten", "funny cat"]));
+      const result = await tryCatch(getGif("cat", "kitty", "kitten", "funny cat"));
         if (result.error) {
           await message.reply(result.error.message);
           return;
