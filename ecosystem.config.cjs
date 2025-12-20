@@ -2,7 +2,9 @@ module.exports = {
   apps: [
     {
       name: "glovedcat",
-      script: "build/main.js",
+      script: "./build/main.js",
+      cwd: "./build",
+      watch: true,
       env_production: {
         NODE_ENV: "production",
       },

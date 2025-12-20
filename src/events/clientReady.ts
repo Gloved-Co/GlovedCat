@@ -1,3 +1,4 @@
+import { ActivityType } from "discord.js"
 import { Client, Discord, On, type ArgsOf } from "discordx"
 
 @Discord()
@@ -18,6 +19,21 @@ export class ClientReady {
     //    ...client.guilds.cache.map((g) => g.id)
     //  );
 
-    console.log(`${client.user?.displayName} started`)
+    console.log(`>> ${client.user?.displayName} started`)
+
+    // set presence
+    if (client.user) {
+      const presence = client.user.setPresence({
+        status: "online",
+        activities: [
+          {
+            name: "Catnip",
+            state: "Searching for the catnip",
+            type: ActivityType.Custom,
+          },
+        ],
+      })
+      console.log(`>> ${client.user?.displayName} presence set to ${JSON.stringify(presence.activities)}`)
+    }
   }
 }

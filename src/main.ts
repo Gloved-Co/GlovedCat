@@ -3,6 +3,9 @@ import { IntentsBitField } from "discord.js"
 import { Client } from "discordx"
 import { env } from "./env.js"
 
+/**
+ * The bot client.
+ */
 export const bot = new Client({
   // To use only guild command
   // botGuilds: [(client) => client.guilds.cache.map((guild) => guild.id)],
