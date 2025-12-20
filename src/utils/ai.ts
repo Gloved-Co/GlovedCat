@@ -15,9 +15,12 @@ import * as fs from "fs"
 import path from "path"
 import { fileURLToPath } from "url"
 import { env } from "../env.js"
+import { bot } from "../main.js"
 import autoDelete from "./autoDelete.js"
 
 const MessageIds: string[] = []
+
+const AILogger = (message: any) => console.log(`${bot.user?.displayName} >> AI >> ${message}`)
 
 /**
  * The current AI model being used.
@@ -321,7 +324,7 @@ export async function aiGenerate({
 }: aiGenerateType) {
   // Make sure the message is in a guild
   if (!message.guild) {
-    await message.reply("AI Generation function can only be used in a server. How did this happen?").then(autoDelete)
+    await message.reply("AI Generation function can only run in a server. How did this happen?").then(autoDelete)
     return
   }
   const guild = message.guild
@@ -364,24 +367,24 @@ export async function aiGenerate({
 
   async function notLastMessageCheck(message: Message) {
     if (!checkLastMessage) {
-      client.logger.info("AI", `Last message check disabled`)
+      AILogger(`Last message check disabled`)
       return false
     }
-    client.logger.info("AI", `Checking last message...`)
+    AILogger(`Checking last message...`)
 
     const lastMessage = await message.channel.messages.fetch({ limit: 1, after: message.id }).then((msg) => msg.first())
     if (!lastMessage) {
-      client.logger.info("AI", `Last message not found`)
+      AILogger(`Last message not found`)
       return false
     }
-    client.logger.info("AI", `Last message: ${lastMessage.id}`)
-    client.logger.info("AI", `Current message: ${message.id}`)
+    AILogger(`Last message: ${lastMessage.id}`)
+    AILogger(`Current message: ${message.id}`)
     return lastMessage.id != message.id
   }
 
-  client.logger.info("AI", `Loading system prompt...`)
+  AILogger(`Loading system prompt...`)
   const systemInstruction = getSystemPrompt()
-  client.logger.info("AI", `System prompt loaded: ${systemInstruction}`)
+  AILogger(`System prompt loaded: ${systemInstruction}`)
 
   const fetchedMessages: Collection<string, Message<boolean>> = await channel.messages.fetch({
     limit: fetchLimit,
@@ -397,7 +400,7 @@ export async function aiGenerate({
     filteredMessages.set(msg.id, msg)
   })
 
-  client.logger.info("AI", `Fetched ${orderedMessages.size} messages`)
+  AILogger(`Fetched ${orderedMessages.size} messages`)
 
   const mentionRegex = /<@!?(\d+)>|<@&(\d+)>|<@(\d+)>/g
   const userIds = new Set<string>()
@@ -453,7 +456,7 @@ export async function aiGenerate({
   try {
     const model = google.languageModel(currentModel)
 
-    client.logger.info("AI", `Starting chat with conversation: ${JSON.stringify(conversations, null, 1)}`)
+    AILogger(`Starting chat with conversation: ${JSON.stringify(conversations, null, 1)}`)
 
     const userAiMessage = `${message.author.username}: ${msgReplaceRegex(message.content)}`
 
@@ -499,7 +502,7 @@ export async function aiGenerate({
 
     const aiResponse = formatUsernames(chatText)
 
-    client.logger.info("AI", `Generated Response: ${aiResponse}`)
+    AILogger(`Generated Response: ${aiResponse}`)
 
     logMessage(`${client.user?.username}: ${aiResponse}`)
     const maxChunkSize = 2000
@@ -531,9 +534,9 @@ export async function aiGenerate({
       }
     }
 
-    client.logger.info("AI", "Current conversation: " + JSON.stringify(conversations, null, 1))
+    AILogger(`Current conversation: ${JSON.stringify(conversations, null, 1)}`)
   } catch (error) {
-    client.logger.error("AI", error)
+    AILogger(error)
     if (sentMessage?.deletable) await sentMessage.delete()
     await message
       .reply("Sorry, I couldn't process your request. Here's what went wrong: ```\n" + error + "\n```")
