@@ -1,4 +1,4 @@
-import type { CommandInteraction, Message } from "discord.js";
+import type { CommandInteraction, Message } from "discord.js"
 import {
   Discord,
   SimpleCommand,
@@ -6,17 +6,17 @@ import {
   SimpleCommandOptionType,
   Slash,
   type SimpleCommandMessage,
-} from "discordx";
+} from "discordx"
 
 @Discord()
 export class Example {
   @SimpleCommand({ aliases: ["hi"] })
   async hello(command: SimpleCommandMessage): Promise<void> {
-    const member = command.message.member;
+    const member = command.message.member
     if (member) {
-      await command.message.reply(`👋 ${member.toString()}`);
+      await command.message.reply(`👋 ${member.toString()}`)
     } else {
-      await command.message.reply("👋 hello");
+      await command.message.reply("👋 hello")
     }
   }
 
@@ -29,25 +29,25 @@ export class Example {
     command: SimpleCommandMessage,
   ): Promise<void> {
     if (!num1 || !num2) {
-      await command.sendUsageSyntax();
-      return;
+      await command.sendUsageSyntax()
+      return
     }
 
-    await command.message.reply(`total = ${String(num1 + num2)}`);
+    await command.message.reply(`total = ${String(num1 + num2)}`)
   }
 
   // make single handler for simple and slash command
   async likeIt(command: CommandInteraction | Message): Promise<void> {
-    await command.reply("I like it, Thanks");
+    await command.reply("I like it, Thanks")
   }
 
   @SimpleCommand({ name: "like-it" })
   async simpleLikeIt(command: SimpleCommandMessage): Promise<void> {
-    await this.likeIt(command.message);
+    await this.likeIt(command.message)
   }
 
   @Slash({ description: "like-ite", name: "like-it" })
   async slashLikeIt(command: CommandInteraction): Promise<void> {
-    await this.likeIt(command);
+    await this.likeIt(command)
   }
 }

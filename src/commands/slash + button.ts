@@ -8,8 +8,8 @@ import {
   type CommandInteraction,
   type MessageActionRowComponentBuilder,
   type User,
-} from "discord.js";
-import { ButtonComponent, Discord, Slash, SlashOption } from "discordx";
+} from "discord.js"
+import { ButtonComponent, Discord, Slash, SlashOption } from "discordx"
 
 @Discord()
 export class Example {
@@ -25,34 +25,31 @@ export class Example {
     interaction: CommandInteraction,
   ): Promise<void> {
     if (!user) {
-      return;
+      return
     }
 
-    await interaction.deferReply();
+    await interaction.deferReply()
 
     const helloBtn = new ButtonBuilder()
       .setLabel("Hello")
       .setEmoji("👋")
       .setStyle(ButtonStyle.Primary)
-      .setCustomId("hello-btn");
+      .setCustomId("hello-btn")
 
-    const row =
-      new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(
-        helloBtn,
-      );
+    const row = new ActionRowBuilder<MessageActionRowComponentBuilder>().addComponents(helloBtn)
 
     await interaction.editReply({
       components: [row],
       content: `${user.toString()}, Say hello to GlovedCat`,
-    });
+    })
   }
 
   @ButtonComponent({ id: "hello-btn" })
   async helloBtn(interaction: ButtonInteraction): Promise<void> {
     if (!(interaction.member instanceof GuildMember)) {
-      return;
+      return
     }
 
-    await interaction.reply(`👋:cat: ${interaction.member.toString()}`);
+    await interaction.reply(`👋:cat: ${interaction.member.toString()}`)
   }
 }
