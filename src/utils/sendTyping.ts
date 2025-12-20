@@ -10,7 +10,7 @@ import {
   VoiceChannel,
 } from "discord.js"
 
-export function sendTyping(
+export async function sendTyping(
   channel:
     | DMChannel
     | PartialDMChannel
@@ -22,5 +22,5 @@ export function sendTyping(
     | PrivateThreadChannel
     | VoiceChannel,
 ) {
-  if ("sendTyping" in channel) return channel.sendTyping()
+  if ("sendTyping" in channel) return await channel.sendTyping()
 }
