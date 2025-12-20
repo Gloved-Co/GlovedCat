@@ -1,3 +1,4 @@
+import { Message } from "discord.js"
 import { Discord, On, type ArgsOf, type Client } from "discordx"
 import { aiGenerate } from "../utils/ai.js"
 import { getGif } from "../utils/getGif.js"
@@ -14,7 +15,13 @@ export class MessageCreate {
     }
     /**  AI Cat Logic Start  */
     // TODO: Add AI Cat Logic
-    if (message.mentions.users.has(message.client.user.id) && !message.mentions.everyone) {
+
+    let messageReference: Message | undefined
+    if (message.reference?.messageId) {
+      messageReference = message.channel.messages.cache.get(message.reference.messageId)
+    }
+    const isMentioned = message.mentions.users.has(message.client.user.id) && !message.mentions.everyone
+    if (isMentioned || messageReference?.author.id === message.client.user.id) {
       await sendTyping(message.channel)
       await aiGenerate({
         message,
