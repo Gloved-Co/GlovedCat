@@ -1,5 +1,7 @@
 import { createGoogleGenerativeAI } from "@ai-sdk/google"
-import { ModelMessage, generateText } from "ai"
+import { createGroq } from "@ai-sdk/groq"
+import { LanguageModelV2 } from "@ai-sdk/provider"
+import { ModelMessage, customProvider, generateText } from "ai"
 import {
   ChannelType,
   Collection,
@@ -25,7 +27,7 @@ const AILogger = (message: any) => console.log(`${bot.user?.displayName} >> AI >
 /**
  * The current AI model being used.
  */
-export let currentModel: string = "gemini-flash-lite-latest"
+export let currentModel: ModelID = "moonshotai/kimi-k2-instruct-0905"
 
 /**
  * The list of available models.
@@ -40,7 +42,36 @@ export let modelList: string[] | null = null
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const google = createGoogleGenerativeAI({ apiKey: env.GEMINI_KEY })
+const groq = createGroq({ apiKey: env.GROQ_KEY })
 
+const Models = [
+  {
+    value: "gemini-flash-lite-latest",
+    provider: "google",
+  } as const,
+  {
+    value: "moonshotai/kimi-k2-instruct-0905",
+    provider: "groq",
+  } as const,
+] as const
+
+type ModelID = (typeof Models)[number]["value"]
+
+const languageModels = Models.reduce(
+  (acc, { value, provider }) => {
+    if (provider === "google") {
+      acc[value] = google.languageModel(value)
+    } else if (provider === "groq") {
+      acc[value] = groq.languageModel(value)
+    }
+    return acc
+  },
+  {} as Record<ModelID, LanguageModelV2>,
+)
+
+const modelProvider = customProvider({
+  languageModels,
+})
 /**
  * Checks if the given message is from a channel with the given name.
  *
@@ -78,6 +109,7 @@ if (!fs.existsSync(logDir)) {
  * @param message the message to log
  */
 function logMessage(message: string): void {
+  return
   const logEntry = `${message}\n`
 
   fs.appendFile(convoLogFile, logEntry, (err) => {
@@ -454,7 +486,7 @@ export async function aiGenerate({
   conversations.pop()
 
   try {
-    const model = google.languageModel(currentModel)
+    const model = modelProvider.languageModel(currentModel)
 
     AILogger(`Starting chat with conversation: ${JSON.stringify(conversations, null, 1)}`)
 

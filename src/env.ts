@@ -9,5 +9,6 @@ export const env = z
     BOT_TOKEN: z.string(),
     TENOR_API_KEY: z.string(),
     GEMINI_KEY: z.string(),
+    GROQ_KEY: z.string(),
   })
   .parse(process.env)
