@@ -39,6 +39,7 @@
     "discord.js": "^14.22.1",
     "discordx": "^11.13.3",
     "dotenv": "^17.2.3",
+    "loglayer": "^8.4.0",
     "zod": "^4.2.1"
   },
   "devDependencies": {

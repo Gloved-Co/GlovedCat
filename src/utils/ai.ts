@@ -17,12 +17,23 @@ import * as fs from "fs"
 import path from "path"
 import { fileURLToPath } from "url"
 import { env } from "../env.js"
-import { bot } from "../main.js"
 import autoDelete from "./autoDelete.js"
+import clientLogger from "./clientLogger.js"
 
 const MessageIds: string[] = []
 
-const AILogger = (message: any) => console.log(`${bot.user?.displayName} >> AI >> ${message}`)
+const Models = [
+  {
+    value: "gemini-flash-lite-latest",
+    provider: "google",
+  } as const,
+  {
+    value: "moonshotai/kimi-k2-instruct-0905",
+    provider: "groq",
+  } as const,
+] as const
+
+type ModelID = (typeof Models)[number]["value"]
 
 /**
  * The current AI model being used.
@@ -44,19 +55,6 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const google = createGoogleGenerativeAI({ apiKey: env.GEMINI_KEY })
 const groq = createGroq({ apiKey: env.GROQ_KEY })
 
-const Models = [
-  {
-    value: "gemini-flash-lite-latest",
-    provider: "google",
-  } as const,
-  {
-    value: "moonshotai/kimi-k2-instruct-0905",
-    provider: "groq",
-  } as const,
-] as const
-
-type ModelID = (typeof Models)[number]["value"]
-
 const languageModels = Models.reduce(
   (acc, { value, provider }) => {
     if (provider === "google") {
@@ -72,6 +70,7 @@ const languageModels = Models.reduce(
 const modelProvider = customProvider({
   languageModels,
 })
+
 /**
  * Checks if the given message is from a channel with the given name.
  *
@@ -104,22 +103,6 @@ if (!fs.existsSync(logDir)) {
 }
 
 /**
- * Logs a message to the file at `convoLogFile`.
- *
- * @param message the message to log
- */
-function logMessage(message: string): void {
-  return
-  const logEntry = `${message}\n`
-
-  fs.appendFile(convoLogFile, logEntry, (err) => {
-    if (err) {
-      console.error("Failed to write to log file:", err)
-    }
-  })
-}
-
-/**
  * Returns the system prompt.
  *
  * @returns the system prompt
@@ -137,7 +120,7 @@ const generationConfig = {
 }
 
 /**
- * The type of message content.
+ * The type of message content. Format required by the AI SDK.
  */
 export type ChatMessage = {
   role: "user" | "assistant"
@@ -260,7 +243,7 @@ async function getAttachments(msg: Message): Promise<{ inlineData: { data: strin
 
   // Check for GIF link or video URL
   const containsGifLink = /https?:\/\/.*\.gif/.test(msg.content)
-  console.log(`message ${msg.id} content contains gif ${containsGifLink}`)
+  clientLogger.info(`message ${msg.id} content contains gif ${containsGifLink}`)
   const videoUrl = msg.embeds[0].video?.url
 
   if (containsGifLink || videoUrl) {
@@ -399,24 +382,24 @@ export async function aiGenerate({
 
   async function notLastMessageCheck(message: Message) {
     if (!checkLastMessage) {
-      AILogger(`Last message check disabled`)
+      clientLogger.info(`Last message check disabled`)
       return false
     }
-    AILogger(`Checking last message...`)
+    clientLogger.info(`Checking last message...`)
 
     const lastMessage = await message.channel.messages.fetch({ limit: 1, after: message.id }).then((msg) => msg.first())
     if (!lastMessage) {
-      AILogger(`Last message not found`)
+      clientLogger.info(`Last message not found`)
       return false
     }
-    AILogger(`Last message: ${lastMessage.id}`)
-    AILogger(`Current message: ${message.id}`)
+    clientLogger.info(`Last message: ${lastMessage.id}`)
+    clientLogger.info(`Current message: ${message.id}`)
     return lastMessage.id != message.id
   }
 
-  AILogger(`Loading system prompt...`)
+  clientLogger.info(`Loading system prompt...`)
   const systemInstruction = getSystemPrompt()
-  AILogger(`System prompt loaded: ${systemInstruction}`)
+  clientLogger.info(`System prompt loaded: ${systemInstruction}`)
 
   const fetchedMessages: Collection<string, Message<boolean>> = await channel.messages.fetch({
     limit: fetchLimit,
@@ -432,7 +415,7 @@ export async function aiGenerate({
     filteredMessages.set(msg.id, msg)
   })
 
-  AILogger(`Fetched ${orderedMessages.size} messages`)
+  clientLogger.info(`Fetched ${orderedMessages.size} messages`)
 
   const mentionRegex = /<@!?(\d+)>|<@&(\d+)>|<@(\d+)>/g
   const userIds = new Set<string>()
@@ -469,7 +452,7 @@ export async function aiGenerate({
     })
   }
 
-  logMessage(`${message.author.username}: ` + msgReplaceRegex(message.content))
+  // logMessage(`${message.author.username}: ` + msgReplaceRegex(message.content))
 
   const conversations: ChatMessage[] = filteredMessages.map((msg) => getMessageContent(msg, msgReplaceRegex)).reverse()
 
@@ -488,7 +471,7 @@ export async function aiGenerate({
   try {
     const model = modelProvider.languageModel(currentModel)
 
-    AILogger(`Starting chat with conversation: ${JSON.stringify(conversations, null, 1)}`)
+    clientLogger.info(`Starting chat with conversation: ${JSON.stringify(conversations, null, 1)}`)
 
     const userAiMessage = `${message.author.username}: ${msgReplaceRegex(message.content)}`
 
@@ -510,7 +493,7 @@ export async function aiGenerate({
       messages: conversations as ModelMessage[],
     })
 
-    // console.log(JSON.stringify(message, null, 4));
+    // clientLogger.info(JSON.stringify(result, null, 4));
 
     function formatUsernames(aiResponse: string) {
       // Match all @username patterns
@@ -534,9 +517,9 @@ export async function aiGenerate({
 
     const aiResponse = formatUsernames(chatText)
 
-    AILogger(`Generated Response: ${aiResponse}`)
+    clientLogger.info(`Generated Response: ${aiResponse}`)
 
-    logMessage(`${client.user?.username}: ${aiResponse}`)
+    // logMessage(`${client.user?.username}: ${aiResponse}`)
     const maxChunkSize = 2000
     if (aiResponse.length > maxChunkSize) {
       const chunks = aiResponse.match(new RegExp(".{1," + maxChunkSize + "}", "g"))
@@ -566,9 +549,9 @@ export async function aiGenerate({
       }
     }
 
-    AILogger(`Current conversation: ${JSON.stringify(conversations, null, 1)}`)
+    clientLogger.info(`Current conversation: ${JSON.stringify(conversations, null, 1)}`)
   } catch (error) {
-    AILogger(error)
+    clientLogger.error(`Error in chat: ${error}`)
     if (sentMessage?.deletable) await sentMessage.delete()
     await message
       .reply("Sorry, I couldn't process your request. Here's what went wrong: ```\n" + error + "\n```")

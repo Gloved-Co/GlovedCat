@@ -9,17 +9,20 @@ import { tryCatch } from "../utils/tryCatch.js"
 export class MessageCreate {
   @On()
   async messageCreate([message]: ArgsOf<"messageCreate">, client: Client): Promise<void> {
+    /** Simple Command Logic  */
     void client.executeCommand(message)
     if (message.author.bot) {
       return
     }
-    /**  AI Cat Logic Start  */
-    // TODO: Add AI Cat Logic
 
+    /**  AI Cat Logic  */
+
+    // To make sure replies get processed
     let messageReference: Message | undefined
     if (message.reference?.messageId) {
       messageReference = message.channel.messages.cache.get(message.reference.messageId)
     }
+
     const isMentioned = message.mentions.users.has(message.client.user.id) && !message.mentions.everyone
     if (isMentioned || messageReference?.author.id === message.client.user.id) {
       await sendTyping(message.channel)
@@ -29,9 +32,8 @@ export class MessageCreate {
         fetchLimit: 10,
       })
     }
-    /**  AI Cat Logic End  */
 
-    // Cat Gif Logic
+    /**  Cat Gif Logic  */
     const gifChance = Math.random() * 100
     if (gifChance < 2) {
       const result = await tryCatch(getGif("cat", "kitty", "kitten", "funny cat"))
