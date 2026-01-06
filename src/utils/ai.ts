@@ -43,17 +43,8 @@ type ModelID = (typeof Models)[number]["value"]
  */
 export let currentModel: ModelID = "moonshotai/kimi-k2-instruct-0905"
 
-/**
- * The list of available models.
- *
- * @description If null, the models have not been fetched yet.
- */
-export let modelList: string[] | null = null
 
-/**
- * The path to the current directory.
- */
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
+
 
 const google = createGoogleGenerativeAI({ apiKey: env.GEMINI_KEY })
 const groq = createGroq({ apiKey: env.GROQ_KEY })
@@ -69,6 +60,8 @@ const languageModels = Models.reduce(
   },
   {} as Record<ModelID, LanguageModelV2>,
 )
+
+// NOTE: Teaching resumes here
 
 /**
  * The custom provider for the AI models.
