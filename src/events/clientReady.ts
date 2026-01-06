@@ -20,7 +20,7 @@ export class ClientReady {
     //    ...client.guilds.cache.map((g) => g.id)
     //  );
 
-    clientLogger.info(`>> ${client.user?.displayName} started`)
+    clientLogger.info(`${client.user?.displayName} started`)
 
     // set presence
     if (client.user) {
@@ -34,7 +34,7 @@ export class ClientReady {
           },
         ],
       })
-      clientLogger.info(`>> ${client.user?.displayName} presence set to ${JSON.stringify(presence.activities)}`)
+      clientLogger.info(`${client.user?.displayName} presence set to ${JSON.stringify(presence.activities)}`)
     }
   }
 }
