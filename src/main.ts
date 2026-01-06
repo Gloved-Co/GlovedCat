@@ -28,7 +28,7 @@ async function run() {
   // Import all events and commands
   await importx(`${dirname(import.meta.url)}/{events,commands}/**/*.{ts,js}`)
 
-  // Log in with your bot token
+  // Log in with bot token
   await bot.login(env.BOT_TOKEN)
 }
 
