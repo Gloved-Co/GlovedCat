@@ -34,7 +34,7 @@ export class ClientReady {
           },
         ],
       })
-      logger.info(`${client.user?.displayName} presence set to ${JSON.stringify(presence.activities)}`)
+      logger.info(`Set ${client.user?.displayName} presence to ${presence.activities.map((a) => a.name)}`)
     }
   }
 }

@@ -18,7 +18,7 @@ import path from "path"
 import { fileURLToPath } from "url"
 import { env } from "../env.js"
 import autoDelete from "./autoDelete.js"
-import customLogger from "./logger.js"
+import logger from "./logger.js"
 
 const MessageIds: string[] = []
 
@@ -243,7 +243,7 @@ async function getAttachments(msg: Message): Promise<{ inlineData: { data: strin
 
   // Check for GIF link or video URL
   const containsGifLink = /https?:\/\/.*\.gif/.test(msg.content)
-  customLogger.info(`message ${msg.id} content contains gif ${containsGifLink}`)
+  logger.info(`message ${msg.id} content contains gif ${containsGifLink}`)
   const videoUrl = msg.embeds[0].video?.url
 
   if (containsGifLink || videoUrl) {
@@ -382,24 +382,24 @@ export async function aiGenerate({
 
   async function notLastMessageCheck(message: Message) {
     if (!checkLastMessage) {
-      customLogger.info(`Last message check disabled`)
+      logger.info(`Last message check disabled`)
       return false
     }
-    customLogger.info(`Checking last message...`)
+    logger.info(`Checking last message...`)
 
     const lastMessage = await message.channel.messages.fetch({ limit: 1, after: message.id }).then((msg) => msg.first())
     if (!lastMessage) {
-      customLogger.info(`Last message not found`)
+      logger.info(`Last message not found`)
       return false
     }
-    customLogger.info(`Last message: ${lastMessage.id}`)
-    customLogger.info(`Current message: ${message.id}`)
+    logger.info(`Last message: ${lastMessage.id}`)
+    logger.info(`Current message: ${message.id}`)
     return lastMessage.id != message.id
   }
 
-  customLogger.info(`Loading system prompt...`)
+  logger.info(`Loading system prompt...`)
   const systemInstruction = getSystemPrompt()
-  customLogger.info(`System prompt loaded: ${systemInstruction}`)
+  logger.info(`System prompt loaded: ${systemInstruction}`)
 
   const fetchedMessages: Collection<string, Message<boolean>> = await channel.messages.fetch({
     limit: fetchLimit,
@@ -415,7 +415,7 @@ export async function aiGenerate({
     filteredMessages.set(msg.id, msg)
   })
 
-  customLogger.info(`Fetched ${orderedMessages.size} messages`)
+  logger.info(`Fetched ${orderedMessages.size} messages`)
 
   const mentionRegex = /<@!?(\d+)>|<@&(\d+)>|<@(\d+)>/g
   const userIds = new Set<string>()
@@ -471,7 +471,7 @@ export async function aiGenerate({
   try {
     const model = modelProvider.languageModel(currentModel)
 
-    customLogger.info(`Starting chat with conversation: ${JSON.stringify(conversations, null, 1)}`)
+    logger.info(`Starting chat with conversation: ${JSON.stringify(conversations, null, 1)}`)
 
     const userAiMessage = `${message.author.username}: ${msgReplaceRegex(message.content)}`
 
@@ -517,7 +517,7 @@ export async function aiGenerate({
 
     const aiResponse = formatUsernames(chatText)
 
-    customLogger.info(`Generated Response: ${aiResponse}`)
+    logger.info(`Generated Response: ${aiResponse}`)
 
     // logMessage(`${client.user?.username}: ${aiResponse}`)
     const maxChunkSize = 2000
@@ -549,9 +549,9 @@ export async function aiGenerate({
       }
     }
 
-    customLogger.info(`Current conversation: ${JSON.stringify(conversations, null, 1)}`)
+    logger.info(`Current conversation: ${JSON.stringify(conversations, null, 1)}`)
   } catch (error) {
-    customLogger.error(`Error in chat: ${error}`)
+    logger.error(`Error in chat: ${error}`)
     if (sentMessage?.deletable) await sentMessage.delete()
     await message
       .reply("Sorry, I couldn't process your request. Here's what went wrong: ```\n" + error + "\n```")

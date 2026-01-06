@@ -22,11 +22,6 @@ export const bot = new Client({
 
   // Debug logs are disabled in silent mode
   silent: false,
-
-  // Configuration for @SimpleCommand
-  simpleCommand: {
-    prefix: "!",
-  },
 })
 
 async function run() {
