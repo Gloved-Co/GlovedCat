@@ -452,8 +452,6 @@ export async function aiGenerate({
     })
   }
 
-  // logMessage(`${message.author.username}: ` + msgReplaceRegex(message.content))
-
   const conversations: ChatMessage[] = filteredMessages.map((msg) => getMessageContent(msg, msgReplaceRegex)).reverse()
 
   if (conversations.length > 1 && conversations.length < fetchLimit && responseChannel.isThread()) {
