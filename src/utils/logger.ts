@@ -3,11 +3,11 @@ import { ConsoleTransport, LogLayer } from "loglayer"
 /**
  * Logger for the discord bot.
  */
-const clientLogger = new LogLayer({
+const customLogger = new LogLayer({
   prefix: "GlovedCat >>",
   transport: new ConsoleTransport({
     logger: console,
   }),
 })
 
-export default clientLogger
+export default customLogger

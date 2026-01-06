@@ -1,6 +1,6 @@
 import { ActivityType } from "discord.js"
 import { Client, Discord, On, type ArgsOf } from "discordx"
-import clientLogger from "../utils/clientLogger.js"
+import logger from "../utils/logger.js"
 
 @Discord()
 export class ClientReady {
@@ -20,7 +20,7 @@ export class ClientReady {
     //    ...client.guilds.cache.map((g) => g.id)
     //  );
 
-    clientLogger.info(`${client.user?.displayName} started`)
+    logger.info(`${client.user?.displayName} started`)
 
     // set presence
     if (client.user) {
@@ -34,7 +34,7 @@ export class ClientReady {
           },
         ],
       })
-      clientLogger.info(`${client.user?.displayName} presence set to ${JSON.stringify(presence.activities)}`)
+      logger.info(`${client.user?.displayName} presence set to ${JSON.stringify(presence.activities)}`)
     }
   }
 }
