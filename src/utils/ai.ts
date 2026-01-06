@@ -22,6 +22,9 @@ import logger from "./logger.js"
 
 const MessageIds: string[] = []
 
+/**
+ * The list of available AI models with their providers (ppl who gib ai models).
+ */
 const Models = [
   {
     value: "gemini-flash-lite-latest",
@@ -67,6 +70,9 @@ const languageModels = Models.reduce(
   {} as Record<ModelID, LanguageModelV2>,
 )
 
+/**
+ * The custom provider for the AI models.
+ */
 const modelProvider = customProvider({
   languageModels,
 })
@@ -88,21 +94,6 @@ export function messageInNamedChannel(message: Message, channelName: string): bo
 }
 
 /**
- * The path to the directory where log files are stored.
- */
-const logDir = path.join(__dirname, "../../logs") // Create a 'logs' directory
-
-/**
- * The path to the log file for conversations.
- */
-const convoLogFile = path.join(logDir, "conversations.log")
-
-// Ensure the log directory exists
-if (!fs.existsSync(logDir)) {
-  fs.mkdirSync(logDir, { recursive: true }) // Create the directory if it doesn't exist
-}
-
-/**
  * Returns the system prompt.
  *
  * @returns the system prompt
@@ -112,6 +103,9 @@ export function getSystemPrompt() {
   return systemPrompt
 }
 
+/**
+ * The configuration for the AI model.
+ */
 const generationConfig = {
   temperature: 1,
   maxOutputTokens: 8192 / 2,
@@ -149,7 +143,7 @@ export type ChatMessage = {
 let lastMessages: { channel: TextChannel | ThreadChannel; message: Message }[] = []
 
 /**
- * Toggles the permissions of the bot in a text channel.
+ * Toggles the permissions of the bot in a text channel, so regular users cant send more messages while a message is being processed.
  *
  * @param msg The message that triggered the command.
  * @param enabled Whether to enable or disable the permissions.
@@ -175,12 +169,12 @@ async function fetchAttachmentData(url: string) {
 }
 
 /**
- * Formats the message content.
+ * Formats the message content for the AI model.
  * @param content The content of the message.
  * @param images Optional attachments to be included in the message.
  * @returns The formatted message content.
  */
-export function formatMessageContent(content: string, images?: string[], videos?: string[]) {
+function formatMessageContent(content: string, images?: string[], videos?: string[]) {
   if (!images && !videos) return content
 
   const contentArray: (
@@ -216,52 +210,6 @@ export function formatMessageContent(content: string, images?: string[], videos?
   }
 
   return contentArray
-}
-
-/**
- * Returns the attachments of a message.
- *
- * @param msg The message to get the attachments from.
- * @returns The attachments of the message, or null if there are no attachments.
- */
-async function getAttachments(msg: Message): Promise<{ inlineData: { data: string; mimeType: string } } | null> {
-  const attachment = msg.attachments.first()
-
-  // Check for attachments
-  if (attachment && (attachment.contentType?.startsWith("image") || attachment.contentType?.startsWith("video"))) {
-    const url = attachment.url
-    const mimeType = attachment.contentType
-    const data = await fetchAttachmentData(url)
-
-    return {
-      inlineData: {
-        data: data,
-        mimeType: mimeType,
-      },
-    }
-  }
-
-  // Check for GIF link or video URL
-  const containsGifLink = /https?:\/\/.*\.gif/.test(msg.content)
-  logger.info(`message ${msg.id} content contains gif ${containsGifLink}`)
-  const videoUrl = msg.embeds[0].video?.url
-
-  if (containsGifLink || videoUrl) {
-    const url = containsGifLink ? msg.content.match(/https?:\/\/.*\.gif/)?.[0] : videoUrl
-    const mimeType = videoUrl ? "video/mp4" : "image/gif"
-    if (!url) return null
-
-    const data = await fetchAttachmentData(url)
-
-    return {
-      inlineData: {
-        data: data,
-        mimeType: mimeType,
-      },
-    }
-  }
-
-  return null
 }
 
 /**
@@ -436,7 +384,7 @@ export async function aiGenerate({
   const userMap: Map<string, string> = new Map(users.map((user) => [user.id, user.username]))
 
   /**
-   * Replace mentions in a message with a format that GenAI can understand.
+   * Replace mentions in a message with a format that AI can understand.
    *
    * Replaces `<@!{userId}>` and `<@{userId}>` with `@{username}`.
    * If the user is not found in the user map, the original mention is kept.
@@ -491,8 +439,6 @@ export async function aiGenerate({
       messages: conversations as ModelMessage[],
     })
 
-    // clientLogger.info(JSON.stringify(result, null, 4));
-
     function formatUsernames(aiResponse: string) {
       // Match all @username patterns
       const matches = aiResponse.match(/@(\w+)/g)
@@ -517,7 +463,6 @@ export async function aiGenerate({
 
     logger.info(`Generated Response: ${aiResponse}`)
 
-    // logMessage(`${client.user?.username}: ${aiResponse}`)
     const maxChunkSize = 2000
     if (aiResponse.length > maxChunkSize) {
       const chunks = aiResponse.match(new RegExp(".{1," + maxChunkSize + "}", "g"))
