@@ -14,8 +14,6 @@ import {
 } from "discord.js"
 import { Client } from "discordx"
 import * as fs from "fs"
-import path from "path"
-import { fileURLToPath } from "url"
 import { env } from "../env.js"
 import autoDelete from "./autoDelete.js"
 import logger from "./logger.js"
@@ -42,9 +40,6 @@ type ModelID = (typeof Models)[number]["value"]
  * The current AI model being used.
  */
 export let currentModel: ModelID = "moonshotai/kimi-k2-instruct-0905"
-
-
-
 
 const google = createGoogleGenerativeAI({ apiKey: env.GEMINI_KEY })
 const groq = createGroq({ apiKey: env.GROQ_KEY })
@@ -148,17 +143,6 @@ async function editChannelPermissions(msg: Message, enabled: boolean): Promise<v
   await channel.permissionOverwrites.edit(channel.guild.roles.everyone, {
     SendMessages: enabled,
   })
-}
-
-/**
- * Fetches the data of an attachment.
- *
- * @param url The URL of the attachment.
- * @returns A promise that resolves to the data of the attachment.
- */
-async function fetchAttachmentData(url: string) {
-  const attachmentData = await fetch(url).then((res) => res.arrayBuffer())
-  return Buffer.from(attachmentData).toString("base64")
 }
 
 /**
